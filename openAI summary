@@ -1,0 +1,79 @@
+from openai import OpenAI
+
+API_KEY = "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"
+
+
+file_path = 'ExampleMessages\linear_algebra_example.txt'
+file_content = ""
+with open(file_path, 'r', encoding='utf-8') as file:
+    lines = file.readlines()
+    file_content = ''.join(lines)
+
+
+default_setup = {
+    "role": "system",
+    "content": (
+        "You are an artificial intelligence student assistant and you need to "
+        "summarize the student's lecture notes into a"
+        "concise list of easily digestable points."
+        "Do not include information beyond the text that the user provides."
+        "If the summary is long, split it into different sections and provide"
+        "appropriate section headers."
+    ),
+}
+
+message_template = {
+    "role": "user",
+    "content": (
+        ""
+    )
+}
+
+client = OpenAI(api_key=API_KEY, base_url="https://api.perplexity.ai")
+
+def make_request(text : str) -> dict:
+    message_template["content"] = text
+    response = client.chat.completions.create(
+        model="mistral-7b-instruct",
+        messages=[default_setup, message_template],
+    )
+    return {"summary" : response.choices[0].message.content}
+
+
+example_messages = [
+    {
+        "role": "system",
+        "content": (
+            "You are an artificial intelligence student assistant and you need to "
+            "summarize the student's lecture notes into a"
+            "concise list of easily digestable points."
+            "Do not include information beyond the text that the user provides."
+            "If the summary is long, split it into different sections and provide"
+            "appropriate section headers."
+        ),
+    },
+    {
+        "role": "user",
+        "content": (
+            file_content
+        ),
+    },
+]
+
+def make_example_request():
+    # chat completion without streaming
+    response = client.chat.completions.create(
+        model="mistral-7b-instruct",
+        messages=example_messages,
+    )
+    print(response)
+    print(response.choices[0].message.content)
+
+    # # chat completion with streaming
+    # response_stream = client.chat.completions.create(
+    #     model="mistral-7b-instruct",
+    #     messages=messages,
+    #     stream=True,
+    # )
+    # for response in response_stream:
+    #     print(response)
